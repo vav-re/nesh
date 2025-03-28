@@ -1,60 +1,51 @@
-// reader.js - Funções para o leitor de conteúdo de ficção Shem
+// reader.js - Enhanced fiction reader with Markdown support
 
-// Configurações padrão do leitor
-const defaultReaderSettings = {
+// Reader settings & state
+const readerSettings = {
     fontSize: 18,
     lineSpacing: 1.8,
     theme: 'dark',
     lastBook: null,
-    lastChapter: 0,
-    lastPage: 0
+    lastChapter: null,
+    lastPosition: 0
 };
 
-// Estado atual do leitor
+// State management
 let currentBook = null;
-let currentChapterIndex = 0;
+let currentChapter = null;
 let currentPageIndex = 0;
 let totalPages = 1;
 let pages = [];
+let isSpeaking = false;
 let synth = window.speechSynthesis;
 let utterance = null;
-let isSpeaking = false;
 
-// DOM Elements (serão inicializados quando o DOM estiver pronto)
+// DOM Elements
 let readerElement, readerTitle, readerContent, readerPage;
 let closeReaderBtn, prevChapterBtn, nextChapterBtn, prevPageBtn, nextPageBtn;
 let toggleSettingsBtn, readerSettings;
-let increaseFontSizeBtn, decreaseFontSizeBtn;
-let increaseLineSpacingBtn, decreaseLineSpacingBtn;
-let lightThemeBtn, sepiaThemeBtn, darkThemeBtn;
-let toggleTTSBtn, playTTSBtn, pauseTTSBtn, stopTTSBtn;
+let fontSizeControls, lineSpacingControls, themeControls;
+let toggleTTSBtn;
 
-// Inicializar o leitor de ficção
-function initFictionReader() {
-    // Verificar se estamos em uma página de leitor de ficção
-    if (!document.getElementById('reader')) {
-        return; // Não estamos na página do leitor
-    }
+// Initialize the reader
+document.addEventListener('DOMContentLoaded', function() {
+    // Only initialize if we're on a reader page
+    if (!document.getElementById('reader')) return;
     
-    // Inicializar referências aos elementos DOM
     initDOMReferences();
-    
-    // Carregar preferências do usuário
+    initEventListeners();
     loadUserPreferences();
+    applyUserPreferences();
     
-    // Adicionar event listeners
-    setupEventListeners();
+    // Get book and chapter from URL
+    const urlParams = parseUrlParams();
     
-    // Obter informações do livro e capítulo da URL
-    const bookId = getBookIdFromURL();
-    const chapterId = getChapterIdFromURL();
-    
-    if (bookId) {
-        openBook(bookId, chapterId);
+    if (urlParams.bookId) {
+        loadBook(urlParams.bookId, urlParams.chapterId);
     }
-}
+});
 
-// Inicializar referências aos elementos DOM
+// Initialize DOM references
 function initDOMReferences() {
     readerElement = document.getElementById('reader');
     readerTitle = document.getElementById('readerTitle');
@@ -70,587 +61,598 @@ function initDOMReferences() {
     toggleSettingsBtn = document.getElementById('toggleSettings');
     readerSettings = document.getElementById('readerSettings');
     
-    increaseFontSizeBtn = document.getElementById('increaseFontSize');
-    decreaseFontSizeBtn = document.getElementById('decreaseFontSize');
-    increaseLineSpacingBtn = document.getElementById('increaseLineSpacing');
-    decreaseLineSpacingBtn = document.getElementById('decreaseLineSpacing');
+    // Font size controls
+    if (document.getElementById('increaseFontSize')) {
+        fontSizeControls = {
+            increase: document.getElementById('increaseFontSize'),
+            decrease: document.getElementById('decreaseFontSize')
+        };
+    }
     
-    lightThemeBtn = document.getElementById('lightTheme');
-    sepiaThemeBtn = document.getElementById('sepiaTheme');
-    darkThemeBtn = document.getElementById('darkTheme');
+    // Line spacing controls
+    if (document.getElementById('increaseLineSpacing')) {
+        lineSpacingControls = {
+            increase: document.getElementById('increaseLineSpacing'),
+            decrease: document.getElementById('decreaseLineSpacing')
+        };
+    }
+    
+    // Theme controls
+    if (document.getElementById('lightTheme')) {
+        themeControls = {
+            light: document.getElementById('lightTheme'),
+            sepia: document.getElementById('sepiaTheme'),
+            dark: document.getElementById('darkTheme')
+        };
+    }
     
     toggleTTSBtn = document.getElementById('toggleTTS');
-    playTTSBtn = document.getElementById('playTTS');
-    pauseTTSBtn = document.getElementById('pauseTTS');
-    stopTTSBtn = document.getElementById('stopTTS');
 }
 
-// Carregar preferências do usuário do localStorage
-function loadUserPreferences() {
-    // Obter as preferências salvas ou usar as padrão
-    const savedPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-    
-    // Aplicar preferências
-    if (readerContent && readerPage) {
-        // Aplicar tamanho da fonte
-        readerContent.style.fontSize = `${savedPrefs.fontSize}px`;
-        
-        // Aplicar espaçamento entre linhas
-        readerPage.style.lineHeight = savedPrefs.lineSpacing;
-        
-        // Aplicar tema
-        setTheme(savedPrefs.theme);
-        
-        // Atualizar botões de tema
-        updateThemeButtons(savedPrefs.theme);
-    }
-}
-
-// Atualizar os botões de tema para refletir o tema atual
-function updateThemeButtons(theme) {
-    if (lightThemeBtn && sepiaThemeBtn && darkThemeBtn) {
-        lightThemeBtn.classList.remove('active');
-        sepiaThemeBtn.classList.remove('active');
-        darkThemeBtn.classList.remove('active');
-        
-        switch (theme) {
-            case 'light':
-                lightThemeBtn.classList.add('active');
-                break;
-            case 'sepia':
-                sepiaThemeBtn.classList.add('active');
-                break;
-            case 'dark':
-            default:
-                darkThemeBtn.classList.add('active');
-                break;
-        }
-    }
-}
-
-// Configurar event listeners
-function setupEventListeners() {
-    // Botão de fechar o leitor
+// Initialize event listeners
+function initEventListeners() {
+    // Close button
     if (closeReaderBtn) {
-        closeReaderBtn.addEventListener('click', () => {
-            stopSpeech();
-            readerElement.style.display = 'none';
-            // Redirecionar para a página principal do livro
-            const bookId = getBookIdFromURL();
-            if (bookId) {
-                window.location.href = `/fiction/${bookId}/`;
-            }
+        closeReaderBtn.addEventListener('click', function() {
+            saveReadingPosition();
+            goToBookIndex();
         });
     }
     
-    // Navegação entre capítulos
+    // Chapter navigation
     if (prevChapterBtn) {
-        prevChapterBtn.addEventListener('click', () => {
-            if (currentChapterIndex > 0) {
-                navigateToChapter(currentChapterIndex - 1);
+        prevChapterBtn.addEventListener('click', function() {
+            if (!currentBook || !currentChapter) return;
+            
+            const chapters = currentBook.chapters;
+            const currentIndex = chapters.findIndex(c => c.id === currentChapter.id);
+            
+            if (currentIndex > 0) {
+                navigateToChapter(chapters[currentIndex - 1].id);
             }
         });
     }
     
     if (nextChapterBtn) {
-        nextChapterBtn.addEventListener('click', () => {
-            // Lógica para determinar o número máximo de capítulos
-            const maxChapters = currentBook?.chapters?.length || 1;
-            if (currentChapterIndex < maxChapters - 1) {
-                navigateToChapter(currentChapterIndex + 1);
+        nextChapterBtn.addEventListener('click', function() {
+            if (!currentBook || !currentChapter) return;
+            
+            const chapters = currentBook.chapters;
+            const currentIndex = chapters.findIndex(c => c.id === currentChapter.id);
+            
+            if (currentIndex < chapters.length - 1) {
+                navigateToChapter(chapters[currentIndex + 1].id);
             }
         });
     }
     
-    // Navegação entre páginas
+    // Page navigation
     if (prevPageBtn) {
-        prevPageBtn.addEventListener('click', () => {
+        prevPageBtn.addEventListener('click', function() {
             if (currentPageIndex > 0) {
                 showPage(currentPageIndex - 1);
-            } else if (currentChapterIndex > 0) {
-                // Ir para o último página do capítulo anterior
-                navigateToChapter(currentChapterIndex - 1, 'last');
             }
         });
     }
     
     if (nextPageBtn) {
-        nextPageBtn.addEventListener('click', () => {
+        nextPageBtn.addEventListener('click', function() {
             if (currentPageIndex < totalPages - 1) {
                 showPage(currentPageIndex + 1);
-            } else {
-                // Verificar se há próximo capítulo
-                const maxChapters = currentBook?.chapters?.length || 1;
-                if (currentChapterIndex < maxChapters - 1) {
-                    navigateToChapter(currentChapterIndex + 1, 'first');
-                }
             }
         });
     }
     
-    // Botão de configurações
+    // Settings toggle
     if (toggleSettingsBtn && readerSettings) {
-        toggleSettingsBtn.addEventListener('click', () => {
+        toggleSettingsBtn.addEventListener('click', function() {
             readerSettings.classList.toggle('active');
         });
     }
     
-    // Controles de tamanho da fonte
-    if (increaseFontSizeBtn) {
-        increaseFontSizeBtn.addEventListener('click', () => {
-            const currentPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-            currentPrefs.fontSize = Math.min(currentPrefs.fontSize + 1, 32);
-            readerContent.style.fontSize = `${currentPrefs.fontSize}px`;
-            saveUserPreferences('shemReaderPreferences', currentPrefs);
-            paginateContent();
+    // Font size controls
+    if (fontSizeControls) {
+        fontSizeControls.increase.addEventListener('click', function() {
+            changeFontSize(1);
+        });
+        
+        fontSizeControls.decrease.addEventListener('click', function() {
+            changeFontSize(-1);
         });
     }
     
-    if (decreaseFontSizeBtn) {
-        decreaseFontSizeBtn.addEventListener('click', () => {
-            const currentPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-            currentPrefs.fontSize = Math.max(currentPrefs.fontSize - 1, 12);
-            readerContent.style.fontSize = `${currentPrefs.fontSize}px`;
-            saveUserPreferences('shemReaderPreferences', currentPrefs);
-            paginateContent();
+    // Line spacing controls
+    if (lineSpacingControls) {
+        lineSpacingControls.increase.addEventListener('click', function() {
+            changeLineSpacing(0.1);
+        });
+        
+        lineSpacingControls.decrease.addEventListener('click', function() {
+            changeLineSpacing(-0.1);
         });
     }
     
-    // Controles de espaçamento entre linhas
-    if (increaseLineSpacingBtn) {
-        increaseLineSpacingBtn.addEventListener('click', () => {
-            const currentPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-            currentPrefs.lineSpacing = Math.min(parseFloat(currentPrefs.lineSpacing) + 0.1, 3.0).toFixed(1);
-            readerPage.style.lineHeight = currentPrefs.lineSpacing;
-            saveUserPreferences('shemReaderPreferences', currentPrefs);
-            paginateContent();
-        });
-    }
-    
-    if (decreaseLineSpacingBtn) {
-        decreaseLineSpacingBtn.addEventListener('click', () => {
-            const currentPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-            currentPrefs.lineSpacing = Math.max(parseFloat(currentPrefs.lineSpacing) - 0.1, 1.0).toFixed(1);
-            readerPage.style.lineHeight = currentPrefs.lineSpacing;
-            saveUserPreferences('shemReaderPreferences', currentPrefs);
-            paginateContent();
-        });
-    }
-    
-    // Controles de tema
-    if (lightThemeBtn) {
-        lightThemeBtn.addEventListener('click', () => {
+    // Theme controls
+    if (themeControls) {
+        themeControls.light.addEventListener('click', function() {
             setTheme('light');
-            updateThemeButtons('light');
         });
-    }
-    
-    if (sepiaThemeBtn) {
-        sepiaThemeBtn.addEventListener('click', () => {
+        
+        themeControls.sepia.addEventListener('click', function() {
             setTheme('sepia');
-            updateThemeButtons('sepia');
         });
-    }
-    
-    if (darkThemeBtn) {
-        darkThemeBtn.addEventListener('click', () => {
+        
+        themeControls.dark.addEventListener('click', function() {
             setTheme('dark');
-            updateThemeButtons('dark');
         });
     }
     
-    // Controles de text-to-speech
+    // Text-to-speech
     if (toggleTTSBtn) {
-        toggleTTSBtn.addEventListener('click', () => {
-            if (!isSpeaking) {
-                startSpeech();
-            } else {
-                stopSpeech();
-            }
+        toggleTTSBtn.addEventListener('click', function() {
+            toggleTextToSpeech();
         });
     }
     
-    if (playTTSBtn) {
-        playTTSBtn.addEventListener('click', startSpeech);
-    }
-    
-    if (pauseTTSBtn) {
-        pauseTTSBtn.addEventListener('click', pauseSpeech);
-    }
-    
-    if (stopTTSBtn) {
-        stopTTSBtn.addEventListener('click', stopSpeech);
-    }
-    
-    // Navegação por teclado
-    document.addEventListener('keydown', (e) => {
-        if (readerElement.style.display === 'block') {
-            if (e.key === 'ArrowLeft') {
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Only handle if reader is active
+        if (!readerElement || readerElement.style.display !== 'block') return;
+        
+        switch (e.key) {
+            case 'ArrowLeft':
                 prevPageBtn.click();
-            } else if (e.key === 'ArrowRight') {
+                break;
+            case 'ArrowRight':
                 nextPageBtn.click();
-            } else if (e.key === 'Escape') {
+                break;
+            case 'Escape':
                 closeReaderBtn.click();
-            }
+                break;
         }
     });
 }
 
-// Obter o ID do livro da URL
-function getBookIdFromURL() {
-    const path = window.location.pathname;
-    const matches = path.match(/\/fiction\/([^\/]+)/);
-    return matches ? matches[1] : null;
-}
-
-// Obter o ID do capítulo da URL
-function getChapterIdFromURL() {
-    const path = window.location.pathname;
-    const matches = path.match(/\/fiction\/[^\/]+\/([^\/]+)/);
-    return matches ? matches[1] : null;
-}
-
-// Abrir um livro
-function openBook(bookId, chapterId = null) {
-    // Aqui você faria uma requisição para obter os metadados do livro
-    // Por exemplo, em uma implementação real, você poderia fazer uma requisição fetch
-    // fetch(`/api/books/${bookId}`).then(...)
+// Load user preferences from localStorage
+function loadUserPreferences() {
+    const savedPrefs = localStorage.getItem('readerSettings');
     
-    // Por enquanto, vamos simular com dados locais
-    getBookData(bookId).then(bookData => {
-        currentBook = bookData;
-        
-        // Determinar qual capítulo abrir
-        let chapterIndex = 0;
-        
-        if (chapterId) {
-            // Encontrar o índice do capítulo pelo ID
-            const index = bookData.chapters.findIndex(ch => ch.id === chapterId);
-            if (index !== -1) {
-                chapterIndex = index;
-            }
-        } else {
-            // Verificar se há uma posição salva para este livro
-            const savedPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-            if (savedPrefs.lastBook === bookId && savedPrefs.lastChapter !== undefined) {
-                chapterIndex = savedPrefs.lastChapter;
-            }
+    if (savedPrefs) {
+        try {
+            const parsedPrefs = JSON.parse(savedPrefs);
+            Object.assign(readerSettings, parsedPrefs);
+        } catch (e) {
+            console.error('Error parsing saved preferences', e);
         }
-        
-        // Abrir o capítulo
-        navigateToChapter(chapterIndex);
-    }).catch(error => {
-        console.error('Erro ao carregar o livro:', error);
-    });
+    }
 }
 
-// Navegar para um capítulo específico
-function navigateToChapter(chapterIndex, pagePosition = null) {
-    if (!currentBook || !currentBook.chapters) return;
+// Apply user preferences to the reader
+function applyUserPreferences() {
+    if (readerContent) {
+        readerContent.style.fontSize = `${readerSettings.fontSize}px`;
+    }
     
-    // Validar o índice do capítulo
-    if (chapterIndex < 0 || chapterIndex >= currentBook.chapters.length) {
-        console.error('Índice de capítulo inválido:', chapterIndex);
+    if (readerPage) {
+        readerPage.style.lineHeight = readerSettings.lineSpacing;
+    }
+    
+    setTheme(readerSettings.theme, false); // Don't save when applying initial settings
+}
+
+// Save user preferences to localStorage
+function saveUserPreferences() {
+    localStorage.setItem('readerSettings', JSON.stringify(readerSettings));
+}
+
+// Save current reading position
+function saveReadingPosition() {
+    if (!currentBook || !currentChapter) return;
+    
+    readerSettings.lastBook = currentBook.id;
+    readerSettings.lastChapter = currentChapter.id;
+    readerSettings.lastPosition = currentPageIndex;
+    
+    saveUserPreferences();
+}
+
+// Change font size
+function changeFontSize(delta) {
+    const newSize = Math.max(12, Math.min(32, readerSettings.fontSize + delta));
+    readerSettings.fontSize = newSize;
+    
+    if (readerContent) {
+        readerContent.style.fontSize = `${newSize}px`;
+    }
+    
+    saveUserPreferences();
+    paginateContent(); // Recalculate pages based on new font size
+}
+
+// Change line spacing
+function changeLineSpacing(delta) {
+    const newSpacing = Math.max(1.0, Math.min(3.0, 
+        parseFloat(readerSettings.lineSpacing) + delta
+    )).toFixed(1);
+    
+    readerSettings.lineSpacing = newSpacing;
+    
+    if (readerPage) {
+        readerPage.style.lineHeight = newSpacing;
+    }
+    
+    saveUserPreferences();
+    paginateContent(); // Recalculate pages based on new spacing
+}
+
+// Set theme
+function setTheme(theme, save = true) {
+    readerSettings.theme = theme;
+    
+    if (readerContent) {
+        readerContent.classList.remove('theme-light', 'theme-sepia', 'theme-dark');
+        readerContent.classList.add(`theme-${theme}`);
+    }
+    
+    // Update theme buttons
+    if (themeControls) {
+        Object.values(themeControls).forEach(btn => btn.classList.remove('active'));
+        themeControls[theme]?.classList.add('active');
+    }
+    
+    if (save) {
+        saveUserPreferences();
+    }
+}
+
+// Toggle text-to-speech
+function toggleTextToSpeech() {
+    if (!window.speechSynthesis) {
+        alert('Seu navegador não suporta narração por voz.');
         return;
     }
     
-    // Parar qualquer narração em andamento
-    stopSpeech();
-    
-    // Atualizar o índice do capítulo atual
-    currentChapterIndex = chapterIndex;
-    
-    // Obter informações do capítulo
-    const chapter = currentBook.chapters[chapterIndex];
-    
-    // Atualizar o título do leitor
-    if (readerTitle) {
-        readerTitle.textContent = `${currentBook.title} - ${chapter.title}`;
-    }
-    
-    // Carregar o conteúdo do capítulo
-    getChapterContent(currentBook.id, chapter.id).then(content => {
-        // Inserir o conteúdo na página
-        if (readerPage) {
-            readerPage.innerHTML = content;
-            
-            // Mostrar o leitor se não estiver visível
-            readerElement.style.display = 'block';
-            
-            // Paginar o conteúdo
-            setTimeout(() => {
-                paginateContent();
-                
-                // Posicionar na página adequada
-                if (pagePosition === 'first') {
-                    showPage(0);
-                } else if (pagePosition === 'last') {
-                    showPage(totalPages - 1);
-                } else {
-                    // Restaurar última posição se for o mesmo livro e capítulo
-                    const savedPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-                    if (savedPrefs.lastBook === currentBook.id && 
-                        savedPrefs.lastChapter === currentChapterIndex &&
-                        savedPrefs.lastPage < totalPages) {
-                        showPage(savedPrefs.lastPage);
-                    } else {
-                        showPage(0);
-                    }
-                }
-            }, 100);
-            
-            // Salvar a posição de leitura
-            saveReadingPosition();
-        }
-    }).catch(error => {
-        console.error('Erro ao carregar o conteúdo do capítulo:', error);
-    });
-}
-
-// Paginar o conteúdo
-function paginateContent() {
-    // Resetar a paginação
-    pages = [];
-    
-    if (!readerContent || !readerPage) return;
-    
-    // Criar um elemento temporário para medir o conteúdo
-    const tempElement = document.createElement('div');
-    tempElement.innerHTML = readerPage.innerHTML;
-    tempElement.style.position = 'absolute';
-    tempElement.style.visibility = 'hidden';
-    tempElement.style.width = `${readerContent.clientWidth - 40}px`; // Considerar o padding
-    document.body.appendChild(tempElement);
-    
-    // Obter todos os parágrafos
-    const paragraphs = tempElement.querySelectorAll('p');
-    let currentPage = '';
-    let currentHeight = 0;
-    const maxHeight = readerContent.clientHeight - 40; // Considerar o padding
-    
-    // Agrupar parágrafos em páginas
-    paragraphs.forEach(paragraph => {
-        const clone = paragraph.cloneNode(true);
-        const height = paragraph.offsetHeight;
-        
-        if (currentHeight + height > maxHeight) {
-            // Iniciar uma nova página
-            pages.push(currentPage);
-            currentPage = clone.outerHTML;
-            currentHeight = height;
-        } else {
-            // Adicionar à página atual
-            currentPage += clone.outerHTML;
-            currentHeight += height;
-        }
-    });
-    
-    // Adicionar a última página se tiver conteúdo
-    if (currentPage) {
-        pages.push(currentPage);
-    }
-    
-    // Cleanup
-    document.body.removeChild(tempElement);
-    
-    totalPages = pages.length || 1;
-    
-    // Atualizar botões de paginação
-    updatePaginationButtons();
-}
-
-// Mostrar uma página específica
-function showPage(pageIndex) {
-    if (!pages.length || pageIndex < 0 || pageIndex >= pages.length) return;
-    
-    // Adicionar animação
-    if (pageIndex > currentPageIndex) {
-        readerPage.classList.add('slide-left-out');
-        setTimeout(() => {
-            currentPageIndex = pageIndex;
-            readerPage.innerHTML = pages[pageIndex];
-            readerPage.classList.remove('slide-left-out');
-            readerPage.classList.add('slide-right-in');
-            setTimeout(() => {
-                readerPage.classList.remove('slide-right-in');
-            }, 300);
-        }, 300);
-    } else if (pageIndex < currentPageIndex) {
-        readerPage.classList.add('slide-right-out');
-        setTimeout(() => {
-            currentPageIndex = pageIndex;
-            readerPage.innerHTML = pages[pageIndex];
-            readerPage.classList.remove('slide-right-out');
-            readerPage.classList.add('slide-left-in');
-            setTimeout(() => {
-                readerPage.classList.remove('slide-left-in');
-            }, 300);
-        }, 300);
+    if (isSpeaking) {
+        stopSpeech();
     } else {
-        currentPageIndex = pageIndex;
-        readerPage.innerHTML = pages[pageIndex];
-    }
-    
-    // Rolar para o topo
-    readerPage.scrollTop = 0;
-    
-    // Salvar posição de leitura
-    saveReadingPosition();
-    
-    // Atualizar botões de paginação
-    updatePaginationButtons();
-}
-
-// Atualizar estado dos botões de paginação
-function updatePaginationButtons() {
-    if (prevPageBtn) {
-        prevPageBtn.disabled = currentPageIndex === 0 && currentChapterIndex === 0;
-    }
-    
-    if (nextPageBtn) {
-        const isLastChapter = currentChapterIndex === (currentBook?.chapters?.length - 1) || 0;
-        const isLastPage = currentPageIndex === (totalPages - 1);
-        nextPageBtn.disabled = isLastChapter && isLastPage;
-    }
-    
-    if (prevChapterBtn) {
-        prevChapterBtn.disabled = currentChapterIndex === 0;
-    }
-    
-    if (nextChapterBtn) {
-        const isLastChapter = currentChapterIndex === (currentBook?.chapters?.length - 1) || 0;
-        nextChapterBtn.disabled = isLastChapter;
+        startSpeech();
     }
 }
 
-// Salvar posição de leitura
-function saveReadingPosition() {
-    if (!currentBook) return;
-    
-    const currentPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-    currentPrefs.lastBook = currentBook.id;
-    currentPrefs.lastChapter = currentChapterIndex;
-    currentPrefs.lastPage = currentPageIndex;
-    
-    saveUserPreferences('shemReaderPreferences', currentPrefs);
-}
-
-// Definir o tema do leitor
-function setTheme(theme) {
-    if (!readerContent) return;
-    
-    // Remover classes de tema existentes
-    readerContent.classList.remove('theme-light', 'theme-sepia', 'theme-dark');
-    
-    // Adicionar a classe do tema selecionado
-    readerContent.classList.add(`theme-${theme}`);
-    
-    // Salvar a preferência
-    const currentPrefs = getUserPreferences('shemReaderPreferences', defaultReaderSettings);
-    currentPrefs.theme = theme;
-    saveUserPreferences('shemReaderPreferences', currentPrefs);
-}
-
-// Text-to-speech: iniciar narração
+// Start speech
 function startSpeech() {
     if (isSpeaking || !window.speechSynthesis) return;
     
-    // Obter o texto da página atual
-    const textToRead = readerPage.innerText;
+    const currentPageText = readerPage.textContent;
     
-    utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.lang = 'pt-BR'; // Definir idioma para português
+    utterance = new SpeechSynthesisUtterance(currentPageText);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 1.0;
     
-    // Evento quando a narração terminar
-    utterance.onend = () => {
+    // When the speech ends
+    utterance.onend = function() {
         isSpeaking = false;
         
-        // Ir para a próxima página automaticamente se disponível
+        // If there are more pages, go to next page and continue reading
         if (currentPageIndex < totalPages - 1) {
             showPage(currentPageIndex + 1);
-            setTimeout(() => startSpeech(), 500);
-        } else if (currentChapterIndex < currentBook.chapters.length - 1) {
-            // Ir para o próximo capítulo
-            navigateToChapter(currentChapterIndex + 1);
-            setTimeout(() => startSpeech(), 1000);
+            startSpeech();
+        } else {
+            // If we're at the last page, update the TTS button
+            if (toggleTTSBtn) {
+                toggleTTSBtn.textContent = '🔊';
+                toggleTTSBtn.title = 'Iniciar Narração';
+            }
         }
     };
     
     synth.speak(utterance);
     isSpeaking = true;
-}
-
-// Text-to-speech: pausar narração
-function pauseSpeech() {
-    if (!window.speechSynthesis) return;
     
-    if (synth.speaking) {
-        if (synth.paused) {
-            synth.resume();
-        } else {
-            synth.pause();
-        }
+    // Update the TTS button
+    if (toggleTTSBtn) {
+        toggleTTSBtn.textContent = '🔇';
+        toggleTTSBtn.title = 'Parar Narração';
     }
 }
 
-// Text-to-speech: parar narração
+// Stop speech
 function stopSpeech() {
-    if (!window.speechSynthesis) return;
+    if (!isSpeaking || !window.speechSynthesis) return;
     
     synth.cancel();
     isSpeaking = false;
+    
+    // Update the TTS button
+    if (toggleTTSBtn) {
+        toggleTTSBtn.textContent = '🔊';
+        toggleTTSBtn.title = 'Iniciar Narração';
+    }
 }
 
-// Funções de simulação para obter dados (em uma implementação real, usaria fetch para API ou arquivos)
-
-// Simular obtenção de dados do livro
-function getBookData(bookId) {
-    // Em uma implementação real, você faria uma requisição para obter esses dados
-    return new Promise((resolve) => {
-        // Simular um livro
-        resolve({
-            id: 'ensaio-sobre-tempo',
-            title: 'Ensaio sobre o Tempo',
-            author: 'Seu Nome',
-            description: 'Uma exploração ficcional das camadas do tempo...',
-            chapters: [
-                { id: 'capitulo1', title: 'Capítulo 1: O Início' },
-                { id: 'capitulo2', title: 'Capítulo 2: Desvendando o Tempo' },
-                { id: 'capitulo3', title: 'Capítulo 3: Além do Horizonte' }
-                // Adicione mais capítulos conforme necessário
-            ]
-        });
-    });
+// Navigate to a chapter
+function navigateToChapter(chapterId) {
+    if (!currentBook) return;
+    
+    // Construct the URL for the chapter
+    const url = `/fiction/${currentBook.id}/${chapterId}`;
+    window.location.href = url;
 }
 
-// Simular obtenção do conteúdo do capítulo
-function getChapterContent(bookId, chapterId) {
-    // Em uma implementação real, você faria uma requisição para obter o conteúdo
-    return new Promise((resolve) => {
-        // Simular conteúdo de capítulo
-        if (chapterId === 'capitulo1') {
-            resolve(`
-                <p>Era uma tarde de outono quando percebi pela primeira vez que o tempo não é linear. As folhas caíam em uma dança circular, suspensas por um momento entre a árvore e o chão, como se hesitassem entre passado e futuro.</p>
-                <p>O professor Eridano havia me alertado sobre isso anos antes, mas só agora eu compreendia verdadeiramente o que ele queria dizer. "O tempo", ele dizia, enquanto ajustava seus óculos redondos, "não é um rio que flui em uma única direção, mas um oceano em que estamos todos imersos, ondulando em múltiplas dimensões".</p>
-                <p>Foi com essa reflexão que iniciei minha jornada de exploração pelo tecido temporal, sem saber que isso mudaria para sempre minha percepção da realidade.</p>
-                <!-- Mais parágrafos de conteúdo -->
-            `);
-        } else if (chapterId === 'capitulo2') {
-            resolve(`
-                <p>As primeiras experiências foram desastrosas. O aparelho que construí no porão de minha casa, baseado nos esboços deixados pelo professor Eridano, oscilava entre momentos estáveis e colapsos energéticos que deixavam todo o quarteirão sem eletricidade.</p>
-                <p>"Você está tentando domar o tempo com tecnologia crua", disse Elisa, minha colega de pesquisa e a única pessoa que não me considerava completamente insano. "O tempo responde melhor à consciência do que à matéria."</p>
-                <p>Foi quando percebi que o instrumento verdadeiro não era a máquina, mas o observador. O tempo se comporta diferentemente quando é percebido.</p>
-                <!-- Mais parágrafos de conteúdo -->
-            `);
+// Load book data
+async function loadBook(bookId, chapterId = null) {
+    try {
+        // Use fetch to get the book data
+        const response = await fetch(`/fiction/${bookId}/book.json`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load book data: ${response.statusText}`);
+        }
+        
+        currentBook = await response.json();
+        
+        // Determine which chapter to load
+        let targetChapterId = chapterId;
+        
+        if (!targetChapterId) {
+            // Try to resume from last position
+            if (readerSettings.lastBook === bookId && readerSettings.lastChapter) {
+                targetChapterId = readerSettings.lastChapter;
+            } else {
+                // Default to the first chapter
+                targetChapterId = currentBook.chapters[0]?.id;
+            }
+        }
+        
+        if (targetChapterId) {
+            loadChapter(bookId, targetChapterId);
+        }
+    } catch (error) {
+        console.error('Error loading book:', error);
+        showError(`Erro ao carregar o livro: ${error.message}`);
+    }
+}
+
+// Load chapter content
+async function loadChapter(bookId, chapterId) {
+    try {
+        // Find the chapter in the book data
+        if (!currentBook || !currentBook.chapters) {
+            throw new Error('Book data not loaded');
+        }
+        
+        currentChapter = currentBook.chapters.find(ch => ch.id === chapterId);
+        
+        if (!currentChapter) {
+            throw new Error(`Chapter ${chapterId} not found`);
+        }
+        
+        // Update title
+        if (readerTitle) {
+            readerTitle.textContent = `${currentBook.title} - ${currentChapter.title}`;
+        }
+        
+        // Load the markdown content
+        const response = await fetch(`/fiction/${bookId}/content/${chapterId}.md`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load chapter content: ${response.statusText}`);
+        }
+        
+        const markdown = await response.text();
+        
+        // Convert markdown to HTML
+        let htmlContent;
+        if (window.marked) {
+            htmlContent = marked.parse(markdown);
         } else {
-            resolve(`
-                <p>Conteúdo simulado para o capítulo ${chapterId}. Em uma implementação real, este conteúdo seria carregado de um arquivo HTML ou de um banco de dados.</p>
-                <p>Você pode criar arquivos HTML separados para cada capítulo do seu livro e carregá-los dinamicamente.</p>
-                <!-- Mais parágrafos de conteúdo -->
-            `);
+            // Fallback for simple paragraph conversion
+            htmlContent = markdown.split('\n\n')
+                .map(p => p.trim())
+                .filter(p => p.length > 0)
+                .map(p => `<p>${p}</p>`)
+                .join('\n');
+        }
+        
+        // Update the page content
+        if (readerPage) {
+            readerPage.innerHTML = htmlContent;
+            
+            // Paginate the content
+            setTimeout(() => {
+                paginateContent();
+                
+                // Try to restore position if we're returning to the same chapter
+                if (readerSettings.lastBook === currentBook.id && 
+                    readerSettings.lastChapter === currentChapter.id) {
+                    showPage(readerSettings.lastPosition);
+                } else {
+                    showPage(0);
+                }
+            }, 100);
+        }
+        
+        // Update chapter navigation buttons
+        updateChapterNavigationButtons();
+        
+    } catch (error) {
+        console.error('Error loading chapter:', error);
+        showError(`Erro ao carregar o capítulo: ${error.message}`);
+    }
+}
+
+// Update chapter navigation buttons based on current chapter
+function updateChapterNavigationButtons() {
+    if (!currentBook || !currentChapter) return;
+    
+    const chapters = currentBook.chapters;
+    const currentIndex = chapters.findIndex(c => c.id === currentChapter.id);
+    
+    if (prevChapterBtn) {
+        prevChapterBtn.disabled = currentIndex <= 0;
+    }
+    
+    if (nextChapterBtn) {
+        nextChapterBtn.disabled = currentIndex >= chapters.length - 1;
+    }
+}
+
+// Paginate content into virtual pages
+function paginateContent() {
+    if (!readerPage || !readerContent) return;
+    
+    pages = [];
+    currentPageIndex = 0;
+    
+    // Create a temporary div to measure content
+    const tempDiv = document.createElement('div');
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.visibility = 'hidden';
+    tempDiv.style.width = `${readerContent.clientWidth - 40}px`; // Account for padding
+    tempDiv.style.fontSize = `${readerSettings.fontSize}px`;
+    tempDiv.style.lineHeight = readerSettings.lineSpacing;
+    
+    document.body.appendChild(tempDiv);
+    
+    // Get all paragraphs
+    const paragraphs = Array.from(readerPage.querySelectorAll('p'));
+    let currentPage = '';
+    let currentHeight = 0;
+    const maxHeight = readerContent.clientHeight - 40; // Account for padding
+    
+    paragraphs.forEach(paragraph => {
+        // Clone the paragraph to measure its height
+        tempDiv.innerHTML = paragraph.outerHTML;
+        const paraHeight = tempDiv.offsetHeight;
+        
+        // If adding this paragraph would exceed the page height, start a new page
+        if (currentHeight + paraHeight > maxHeight && currentHeight > 0) {
+            pages.push(currentPage);
+            currentPage = paragraph.outerHTML;
+            currentHeight = paraHeight;
+        } else {
+            currentPage += paragraph.outerHTML;
+            currentHeight += paraHeight;
         }
     });
+    
+    // Add the last page if it has content
+    if (currentPage) {
+        pages.push(currentPage);
+    }
+    
+    // Cleanup
+    document.body.removeChild(tempDiv);
+    
+    // Make sure we have at least one page
+    if (pages.length === 0) {
+        pages.push(readerPage.innerHTML);
+    }
+    
+    totalPages = pages.length;
+    
+    // Update page navigation buttons
+    updatePageNavigationButtons();
 }
 
-// Export as funções necessárias para uso externo
-window.initFictionReader = initFictionReader;
+// Update page navigation buttons based on current page
+function updatePageNavigationButtons() {
+    if (prevPageBtn) {
+        prevPageBtn.disabled = currentPageIndex <= 0;
+    }
+    
+    if (nextPageBtn) {
+        nextPageBtn.disabled = currentPageIndex >= totalPages - 1;
+    }
+}
+
+// Show a specific page
+function showPage(pageIndex) {
+    if (pageIndex < 0 || pageIndex >= pages.length) return;
+    
+    // Stop speech if active
+    if (isSpeaking) {
+        stopSpeech();
+    }
+    
+    // Apply page transition effect
+    const direction = pageIndex > currentPageIndex ? 'right' : 'left';
+    applyPageTransition(direction, () => {
+        currentPageIndex = pageIndex;
+        readerPage.innerHTML = pages[pageIndex];
+        
+        // Update navigation
+        updatePageNavigationButtons();
+        saveReadingPosition();
+    });
+}
+
+// Apply a smooth page transition effect
+function applyPageTransition(direction, callback) {
+    if (!readerPage) {
+        callback();
+        return;
+    }
+    
+    // Add the appropriate transition class
+    if (direction === 'right') {
+        readerPage.classList.add('slide-left-out');
+    } else {
+        readerPage.classList.add('slide-right-out');
+    }
+    
+    // Wait for the transition to complete
+    setTimeout(() => {
+        // Execute the callback to change content
+        callback();
+        
+        // Remove the out transition and add the in transition
+        readerPage.classList.remove('slide-left-out', 'slide-right-out');
+        
+        if (direction === 'right') {
+            readerPage.classList.add('slide-right-in');
+        } else {
+            readerPage.classList.add('slide-left-in');
+        }
+        
+        // Remove the in transition after it completes
+        setTimeout(() => {
+            readerPage.classList.remove('slide-right-in', 'slide-left-in');
+        }, 300);
+    }, 300);
+}
+
+// Go to the book index page
+function goToBookIndex() {
+    if (!currentBook) return;
+    window.location.href = `/fiction/${currentBook.id}/`;
+}
+
+// Show an error message to the user
+function showError(message) {
+    if (readerPage) {
+        readerPage.innerHTML = `
+            <div class="error-message">
+                <div class="error-icon">❌</div>
+                <h3>Erro</h3>
+                <p>${message}</p>
+                <button onclick="goToBookIndex()">Voltar</button>
+            </div>
+        `;
+    }
+}
+
+// Parse URL parameters to get book and chapter IDs
+function parseUrlParams() {
+    const path = window.location.pathname;
+    const pathParts = path.split('/').filter(Boolean);
+    
+    if (pathParts.length >= 2 && pathParts[0] === 'fiction') {
+        const bookId = pathParts[1];
+        const chapterId = pathParts.length >= 3 ? pathParts[2] : null;
+        
+        return { bookId, chapterId };
+    }
+    
+    return {};
+}

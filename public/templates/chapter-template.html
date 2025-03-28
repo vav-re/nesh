@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{BOOK_TITLE}} - {{CHAPTER_TITLE}}</title>
+    <link rel="stylesheet" href="/css/fiction.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700&family=EB+Garamond:wght@400;700&family=Sora:wght@400;700&family=Josefin+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="no-context">
+    <div id="reader" class="reader" style="display: block;">
+        <div class="reader-header">
+            <div class="reader-title" id="readerTitle">{{BOOK_TITLE}} - {{CHAPTER_TITLE}}</div>
+            <div class="reader-controls">
+                <button id="toggleSettings" class="settings-btn" title="Configurações de Leitura">⚙️</button>
+                <button id="toggleTTS" class="settings-btn" title="Narração por Voz">🔊</button>
+                <button id="closeReader" title="Voltar">&times;</button>
+            </div>
+        </div>
+        
+        <!-- Reader Settings Panel -->
+        <div id="readerSettings" class="reader-settings">
+            <div class="settings-group">
+                <h4>Tamanho da Fonte</h4>
+                <div class="font-size-controls">
+                    <button id="decreaseFontSize" class="settings-btn">A-</button>
+                    <button id="increaseFontSize" class="settings-btn">A+</button>
+                </div>
+            </div>
+            
+            <div class="settings-group">
+                <h4>Espaçamento</h4>
+                <div class="line-spacing-controls">
+                    <button id="decreaseLineSpacing" class="settings-btn">↕-</button>
+                    <button id="increaseLineSpacing" class="settings-btn">↕+</button>
+                </div>
+            </div>
+            
+            <div class="settings-group">
+                <h4>Tema</h4>
+                <div class="theme-controls">
+                    <div id="lightTheme" class="theme-btn theme-light" title="Claro"></div>
+                    <div id="sepiaTheme" class="theme-btn theme-sepia" title="Sépia"></div>
+                    <div id="darkTheme" class="theme-btn theme-dark active" title="Escuro"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="reader-content" id="readerContent">
+            <div id="readerPage" class="reader-page">
+                {{CHAPTER_CONTENT}}
+            </div>
+        </div>
+        
+        <div class="pagination">
+            <button id="prevPage" class="page-btn">
+                <i class="fas fa-chevron-left"></i> Página Anterior
+            </button>
+            <div class="chapter-navigation">
+                <button id="prevChapter" {{PREV_CHAPTER_DISABLED}}>
+                    <i class="fas fa-arrow-left"></i> Capítulo Anterior
+                </button>
+                <button id="nextChapter" {{NEXT_CHAPTER_DISABLED}}>
+                    Próximo Capítulo <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <button id="nextPage" class="page-btn">
+                Próxima Página <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/reader.js"></script>
+</body>
+</html>

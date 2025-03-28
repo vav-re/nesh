@@ -1,0 +1,26 @@
+{
+  "id": "ensaio-sobre-tempo",
+  "title": "Ensaio sobre o Tempo",
+  "author": "Gustavo Mendes e Silva",
+  "description": "Ao receber uma carta misteriosa com apenas cinco palavras, o Relojoeiro parte em uma jornada desconcertante que desafia não apenas suas verdades, mas ele mesmo enquanto homem.",
+  "cover": "https://source.unsplash.com/random/800x600/?time",
+  "published": "2025",
+  "language": "pt-BR",
+  "chapters": [
+    {
+      "id": "capitulo1",
+      "title": "Era uma manhã como outra qualquer",
+      "order": 1
+    },
+    {
+      "id": "capitulo2",
+      "title": "Cidade das Horas Invertidas",
+      "order": 2
+    },
+    {
+      "id": "capitulo3",
+      "title": "Vale da Imutabilidade",
+      "order": 3
+    }
+  ]
+}
