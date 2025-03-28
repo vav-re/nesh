@@ -1,0 +1,23 @@
+/* Theme: Petrol Blue - Para artigos acadêmicos */
+:root {
+    /* Cores primárias */
+    --primary-color: #0f4c5c; /* azul petróleo base */
+    --secondary-color: #3a6ea5; /* variação mais clara */
+    --accent-color: #5b9bd5; /* acento mais claro */
+    
+    /* Variantes com transparência para backgrounds */
+    --primary-color-rgb: 15, 76, 92;
+    --secondary-color-rgb: 58, 110, 165;
+    --accent-color-rgb: 91, 155, 213;
+    
+    /* Cores para elementos específicos */
+    --quote-color: #093b47; /* petrol escuro - para citações */
+    --link-color: #0f4c5c; /* petrol base */
+    --link-hover-color: #3a6ea5; /* petrol claro */
+    --badge-color: #3a6ea5; /* petrol médio */
+    --process-node-bg: #e5f1f5; /* petrol muito claro */
+    
+    /* Para realçar hierarquias */
+    --heading-gradient-start: #0f4c5c; /* petrol base */
+    --heading-gradient-end: #1a759f; /* variação para gradiente */
+}

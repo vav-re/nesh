@@ -1,0 +1,346 @@
+/* fiction.css - Estilos para o leitor de conteúdo de ficção */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #34495e;
+    --accent-color: #3498db;
+    --text-color: #ecf0f1;
+    --background-color: #1a2a3a;
+    --modal-background: rgba(26, 42, 58, 0.95);
+    
+    --font-sans: 'Sora', sans-serif;
+    --font-serif: 'EB Garamond', serif;
+    --font-mono: 'Manrope', monospace;
+    --font-accent: 'Josefin Sans', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-sans);
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none; /* Prevent text selection */
+}
+
+/* Prevent right-clicking */
+body.no-context {
+    pointer-events: auto;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo h1 {
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+    position: relative;
+}
+
+.logo h1::before {
+    content: "";
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid var(--accent-color);
+}
+
+.logo span {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 1rem;
+}
+
+.hub {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 4rem;
+}
+
+.book-card {
+    background-color: var(--secondary-color);
+    border-radius: 5px;
+    padding: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.book-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(52, 152, 219, 0.1);
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+}
+
+.book-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.book-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 50px;
+    height: 2px;
+    background-color: var(--accent-color);
+}
+
+.book-description {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+}
+
+.book-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Reader Styles */
+.reader {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color);
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.reader-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem 2rem;
+    background-color: var(--primary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.reader-title {
+    font-size: 1.2rem;
+}
+
+.reader-controls {
+    display: flex;
+    align-items: center;
+}
+
+.reader-controls button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    margin-left: 1rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.reader-controls button:hover {
+    opacity: 1;
+}
+
+.reader-content {
+    margin: 80px auto 0;
+    padding: 2rem;
+    max-width: 800px;
+    height: calc(100vh - 160px);
+    overflow: hidden;
+    line-height: 1.8;
+    transition: all 0.3s ease;
+}
+
+.reader-page {
+    height: 100%;
+    overflow-y: auto;
+    padding: 1rem;
+    transition: transform 0.5s ease;
+}
+
+/* Reader settings panel */
+.reader-settings {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    background-color: var(--secondary-color);
+    padding: 1rem 2rem;
+    display: none;
+    justify-content: center;
+    gap: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 9;
+}
+
+.reader-settings.active {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.settings-group h4 {
+    margin-bottom: 0.5rem;
+}
+
+.font-size-controls,
+.line-spacing-controls,
+.theme-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.theme-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-btn.active {
+    border-color: var(--accent-color);
+}
+
+.theme-light {
+    background-color: #f5f5f5;
+}
+
+.theme-sepia {
+    background-color: #f4ecd8;
+}
+
+.theme-dark {
+    background-color: #1a2a3a;
+}
+
+.settings-btn {
+    padding: 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+/* Reader themes */
+.reader-content.theme-light {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.reader-content.theme-sepia {
+    background-color: #f4ecd8;
+    color: #5f4b32;
+}
+
+.pagination {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--primary-color);
+    z-index: 10;
+}
+
+.pagination button {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pagination button:hover {
+    background-color: #2980b9;
+}
+
+.pagination button:disabled {
+    background-color: rgba(52, 152, 219, 0.3);
+    cursor: not-allowed;
+}
+
+/* Page transition animations */
+@keyframes slideToLeft {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(-100px); opacity: 0; }
+}
+
+@keyframes slideFromRight {
+    from { transform: translateX(100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.slide-left-out {
+    animation: slideToLeft 0.3s forwards;
+}
+
+.slide-right-in {
+    animation: slideFromRight 0.3s forwards;
+}
+
+/* Prevenindo impressão não autorizada */
+@media print {
+    body {
+        display: none;
+    }
+}

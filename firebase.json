@@ -1,0 +1,28 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/fiction/:bookId",
+        "destination": "/fiction/:bookId/index.html"
+      },
+      {
+        "source": "/fiction/:bookId/:chapterId",
+        "destination": "/fiction/:bookId/:chapterId.html"
+      },
+      {
+        "source": "/academic/:articleId",
+        "destination": "/academic/:articleId/index.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

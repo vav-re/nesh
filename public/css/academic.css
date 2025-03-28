@@ -1,0 +1,321 @@
+/* academic.css - Estilos base para artigos acadêmicos */
+:root {
+    /* Variáveis de cor definidas pelo tema específico */
+    --primary-color: #4f46e5; /* Será substituído pelo tema */
+    --secondary-color: #8b5cf6; /* Será substituído pelo tema */
+    --accent-color: #818cf8; /* Será substituído pelo tema */
+    
+    /* Cores comuns para todos os temas */
+    --background-color: #f9fafb;
+    --card-background: #ffffff;
+    --text-color: #1f2937;
+    --heading-color: #111827;
+    --muted-color: #6b7280;
+    --border-color: #e5e7eb;
+    
+    /* Fontes */
+    --font-sans: 'Sora', system-ui, -apple-system, sans-serif; 
+    --font-serif: 'EB Garamond', serif;
+    --font-mono: 'Manrope', monospace;
+    --font-accent: 'Josefin Sans', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-serif);
+    color: var(--text-color);
+    background-color: var(--background-color);
+    line-height: 1.6;
+    font-size: 18px;
+    user-select: none; /* Prevenir seleção de texto */
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Cabeçalho */
+header {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 5rem 0;
+}
+
+header .container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.author {
+    font-family: var(--font-mono);
+    font-weight: 300;
+    opacity: 0.8;
+    margin-bottom: 1rem;
+}
+
+.title {
+    font-family: var(--font-sans);
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+}
+
+.subtitle {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-style: italic;
+    margin-bottom: 2rem;
+}
+
+.divider {
+    width: 6rem;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+}
+
+/* Conteúdo principal */
+main {
+    padding: 4rem 0;
+}
+
+section {
+    margin-bottom: 4rem;
+}
+
+/* Títulos */
+h2 {
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+h3 {
+    font-family: var(--font-accent);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+h4 {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
+}
+
+/* Parágrafos */
+p {
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    text-align: justify;
+}
+
+/* Citações */
+em {
+    color: var(--primary-color);
+    font-style: italic;
+}
+
+/* Blockquotes */
+blockquote {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+}
+
+/* Cartões/Caixas */
+.card {
+    background-color: var(--card-background);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Grid e Flex layouts */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.flex {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .flex {
+        flex-direction: column;
+    }
+}
+
+/* Tabelas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+th, td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+}
+
+th {
+    background-color: rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+}
+
+/* Referências */
+.references {
+    padding: 2rem;
+    background-color: var(--card-background);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.references ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.references li {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    text-indent: -1.5rem;
+}
+
+.reference-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.reference-link:hover {
+    opacity: 0.8;
+}
+
+/* Rodapé */
+footer {
+    background-color: #111827;
+    color: white;
+    padding: 3rem 0;
+    margin-top: 4rem;
+}
+
+/* Botão de voltar */
+.back-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: var(--primary-color);
+    color: white;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    border: none;
+    z-index: 100;
+}
+
+.back-button:hover {
+    transform: translateY(-3px);
+}
+
+/* Índice/TOC */
+.table-of-contents {
+    background-color: var(--card-background);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    position: sticky;
+    top: 2rem;
+}
+
+.table-of-contents h3 {
+    margin-bottom: 1rem;
+}
+
+.table-of-contents ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.table-of-contents li {
+    margin-bottom: 0.5rem;
+}
+
+.table-of-contents a {
+    color: var(--text-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.table-of-contents a:hover {
+    color: var(--primary-color);
+}
+
+.table-of-contents .toc-level-2 {
+    padding-left: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Layout de duas colunas para desktop */
+@media (min-width: 1024px) {
+    .content-with-toc {
+        display: grid;
+        grid-template-columns: 3fr 1fr;
+        gap: 2rem;
+    }
+
+    .main-content {
+        grid-column: 1;
+    }
+
+    .sidebar {
+        grid-column: 2;
+    }
+}
+
+/* Prevenindo impressão não autorizada */
+@media print {
+    body {
+        display: none;
+    }
+}

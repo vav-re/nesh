@@ -1,0 +1,24 @@
+/* Theme: Amber - Para artigos acadêmicos no Shem */
+
+:root {
+    /* Cores primárias */
+    --primary-color: #d97706; /* amber-600 */
+    --secondary-color: #b45309; /* amber-700 */
+    --accent-color: #f59e0b; /* amber-500 */
+    
+    /* Variantes com transparência para backgrounds */
+    --primary-color-rgb: 217, 119, 6;
+    --secondary-color-rgb: 180, 83, 9;
+    --accent-color-rgb: 245, 158, 11;
+    
+    /* Cores para elementos específicos */
+    --quote-color: #92400e; /* amber-800 - para citações */
+    --link-color: #d97706; /* amber-600 */
+    --link-hover-color: #f59e0b; /* amber-500 */
+    --badge-color: #f59e0b; /* amber-500 */
+    --process-node-bg: #fef3c7; /* amber-100 */
+    
+    /* Para realçar hierarquias */
+    --heading-gradient-start: #d97706; /* amber-600 */
+    --heading-gradient-end: #ea580c; /* orange-600 */
+}

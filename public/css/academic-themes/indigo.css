@@ -1,0 +1,23 @@
+/* Theme: Indigo - Para artigos acadêmicos */
+:root {
+    /* Cores primárias */
+    --primary-color: #4f46e5; /* indigo-600 */
+    --secondary-color: #8b5cf6; /* violet-500 */
+    --accent-color: #818cf8; /* indigo-400 */
+    
+    /* Variantes com transparência para backgrounds */
+    --primary-color-rgb: 79, 70, 229;
+    --secondary-color-rgb: 139, 92, 246;
+    --accent-color-rgb: 129, 140, 248;
+    
+    /* Cores para elementos específicos */
+    --quote-color: #4338ca; /* indigo-700 - para citações */
+    --link-color: #4f46e5; /* indigo-600 */
+    --link-hover-color: #6366f1; /* indigo-500 */
+    --badge-color: #6366f1; /* indigo-500 */
+    --process-node-bg: #e0e7ff; /* indigo-100 */
+    
+    /* Para realçar hierarquias */
+    --heading-gradient-start: #4f46e5; /* indigo-600 */
+    --heading-gradient-end: #8b5cf6; /* violet-500 */
+}

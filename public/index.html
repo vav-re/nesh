@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nesh - Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Sora:wght@100;200;300;400;500;600;700;800&family=Josefin+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --text-color: #ecf0f1;
+            --background-color: #1a2a3a;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            
+            --font-sans: 'Sora', sans-serif;
+            --font-serif: 'EB Garamond', serif;
+            --font-mono: 'Manrope', monospace;
+            --font-accent: 'Josefin Sans', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none; /* Prevent text selection */
+        }
+        
+        header {
+            padding: 5rem 0;
+            background: linear-gradient(to right, #2c3e50, #4b6cb7);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            margin: 3rem 0 2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.2);
+            margin-left: 1rem;
+        }
+        
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .card {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-image {
+            height: 200px;
+            background-position: center;
+            background-size: cover;
+            position: relative;
+        }
+        
+        .card-content {
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-description {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+        
+        .badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-fiction {
+            background-color: #3498db;
+        }
+        
+        .badge-academic {
+            background-color: #9b59b6;
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 2rem 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Prevent right-clicking */
+        body.no-context {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="no-context">
+    <header>
+        <div class="container">
+            <h1>NESH</h1>
+            <p>Plataforma literária e acadêmica</p>
+        </div>
+    </header>
+    
+    <main class="container">
+        <h2 class="section-title">Literatura</h2>
+        <div class="collection-grid fade-in">
+            <div class="card" onclick="window.location.href='/fiction/ensaio-sobre-tempo/'">
+                <div class="card-image" style="background-image: url('https://source.unsplash.com/random/800x600/?book');">
+                    <span class="badge badge-fiction">Ficção</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Ensaio sobre o Tempo</h3>
+                    <p class="card-description">Uma exploração ficcional das camadas do tempo, da percepção humana, e das múltiplas dimensões de nossas experiências temporais.</p>
+                    <div class="card-meta">
+                        <span>6 capítulos</span>
+                        <span>2025</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="section-title">Artigos Acadêmicos</h2>
+        <div class="collection-grid fade-in">
+            <div class="card" onclick="window.location.href='/academic/disruptura-cognitiva/'">
+                <div class="card-image" style="background-image: url('https://source.unsplash.com/random/800x600/?brain');">
+                    <span class="badge badge-academic">Acadêmico</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Disruptura Cognitiva</h3>
+                    <p class="card-description">Ruptura e Reorganização da Mente: Uma análise fenomenológica das descontinuidades significativas na arquitetura dinâmica da cognição humana.</p>
+                    <div class="card-meta">
+                        <span>Fenomenologia • Psicologia</span>
+                        <span>2025</span>
+                    </div>
+                </div>
+            </div>
+
+<div class="card" onclick="window.location.href='/academic/conceito-doenca-mental/'">
+                <div class="card-image" style="background-image: url('https://source.unsplash.com/random/800x600/?brain');">
+                    <span class="badge badge-academic">Acadêmico</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Conceito de Doença Mental</h3>
+                    <p class="card-description">Ruptura e Reorganização da Mente: Uma análise fenomenológica das descontinuidades significativas na arquitetura dinâmica da cognição humana.</p>
+                    <div class="card-meta">
+                        <span>Fenomenologia • Psicologia</span>
+                        <span>2025</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; <span id="current-year">2025</span> Todos os direitos reservados</p>
+        </div>
+    </footer>
+    
+    <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ensaio sobre o Tempo</title>
+    <link rel="stylesheet" href="/css/fiction.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Sora:wght@100;200;300;400;500;600;700;800&family=Josefin+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos específicos para a página inicial do livro */
+        .book-hero {
+            height: 400px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .book-hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://source.unsplash.com/random/1200x800/?time');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.3;
+            z-index: 0;
+        }
+        
+        .book-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+        
+        .book-title {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-family: var(--font-serif);
+        }
+        
+        .book-author {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            font-family: var(--font-mono);
+            opacity: 0.8;
+        }
+        
+        .book-description {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            max-width: 700px;
+        }
+        
+        .start-reading {
+            background-color: white;
+            color: var(--primary-color);
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .start-reading:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chapters-section {
+            padding: 4rem 0;
+        }
+        
+        .chapter-list {
+            list-style: none;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .chapter-item {
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .chapter-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chapter-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            padding: 1.5rem 2rem;
+        }
+        
+        .chapter-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            margin-right: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .chapter-info {
+            flex-grow: 1;
+        }
+        
+        .chapter-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+        
+        .chapter-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .chapter-arrow {
+            font-size: 1.2rem;
+            opacity: 0.5;
+        }
+        
+        .back-to-home {
+            display: inline-block;
+            margin-top: 2rem;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .back-to-home:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body class="no-context">
+    <header class="book-hero">
+        <div class="book-hero-content">
+            <h1 class="book-title">Ensaio sobre o Tempo</h1>
+            <p class="book-author">Gustavo Mendes e Silva</p>
+            <p class="book-description">Ao receber uma carta misterior com apenas cinco letras, o Relojoeiro parte em uma jornada desconcertante que desafia não apenas suas verdades, mas ele mesmo enquanto homem.</p>
+            <button class="start-reading" onclick="window.location.href='capitulo1.html'">
+                Começar a Ler <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </header>
+    
+    <main>
+        <section class="chapters-section">
+            <div class="container">
+                <h2>Capítulos</h2>
+                <ul class="chapter-list">
+                    <li class="chapter-item">
+                        <a href="capitulo1.html" class="chapter-link">
+                            <span class="chapter-number">1</span>
+                            <div class="chapter-info">
+                                <h3 class="chapter-title">Era uma manhã como outra qualquer</h3>
+                               
+                            </div>
+                            <span class="chapter-arrow">→</span>
+                        </a>
+                    </li>
+                    
+                    <li class="chapter-item">
+                        <a href="capitulo2.html" class="chapter-link">
+                            <span class="chapter-number">2</span>
+                            <div class="chapter-info">
+                                <h3 class="chapter-title">Cidade das Horas Invertidas</h3>
+                               
+                            </div>
+                            <span class="chapter-arrow">→</span>
+                        </a>
+                    </li>
+                    
+                    <li class="chapter-item">
+                        <a href="capitulo3.html" class="chapter-link">
+                            <span class="chapter-number">3</span>
+                            <div class="chapter-info">
+                                <h3 class="chapter-title">Vale da Imutabilidade</h3>
+                              
+                            </div>
+                            <span class="chapter-arrow">→</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <a href="/" class="back-to-home">
+                    <i class="fas fa-arrow-left"></i> Voltar para o Hub
+                </a>
+            </div>
+        </section>
+    </main>
+    
+    <script src="/js/main.js"></script>
+</body>
+</html>
